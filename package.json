@@ -1,0 +1,46 @@
+{
+  "name": "hotel-reservation",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "build:sidecar": "node automation/build-sidecar.mjs"
+  },
+  "pkg": {
+    "scripts": [
+      "node_modules/playwright/**/*.js",
+      "node_modules/playwright/**/*.json",
+      "node_modules/playwright-core/**/*.js",
+      "node_modules/playwright-core/**/*.json",
+      "node_modules/playwright-core/browsers.json"
+    ],
+    "assets": [
+      "node_modules/playwright/**/*",
+      "node_modules/playwright-core/**/*"
+    ]
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
+    "@tauri-apps/plugin-opener": "^2",
+    "papaparse": "^5.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "@yao-pkg/pkg": "^6.21.0",
+    "esbuild": "^0.28.1",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4"
+  }
+}

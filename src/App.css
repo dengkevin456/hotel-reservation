@@ -1,0 +1,243 @@
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  color: #1a1a2e;
+  background-color: #f4f5fb;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Hide the scrollbar (Chromium/WebKit-based Tauri webview) */
+html {
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.container {
+  box-sizing: border-box;
+  min-height: 100vh;
+  margin: 0;
+  padding: 6vh 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header {
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #396cd8;
+}
+
+.subtitle {
+  margin: 0.5rem 0 0;
+  color: #5b5b74;
+  font-size: 1rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  background-color: #ffffff;
+  border: 1px solid #e6e7f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(31, 41, 92, 0.08);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3a3a52;
+}
+
+.field-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.field-row input {
+  flex: 1;
+}
+
+.checkbox,
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #3a3a52;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.checkbox input,
+.radio input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: #396cd8;
+  cursor: pointer;
+}
+
+input:disabled,
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+input {
+  border-radius: 10px;
+  border: 1px solid #d7d9e6;
+  padding: 0.65em 0.9em;
+  font-size: 1em;
+  font-family: inherit;
+  color: #1a1a2e;
+  background-color: #fbfbfe;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+input:focus {
+  border-color: #396cd8;
+  box-shadow: 0 0 0 3px rgba(57, 108, 216, 0.15);
+}
+
+button {
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0.65em 1.2em;
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.05s;
+  outline: none;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.primary {
+  color: #ffffff;
+  background-color: #396cd8;
+}
+
+.primary:hover:not(:disabled) {
+  background-color: #2f5cc0;
+}
+
+.secondary {
+  color: #396cd8;
+  background-color: #ffffff;
+  border-color: #d7d9e6;
+  white-space: nowrap;
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: #396cd8;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.message.error {
+  color: #a12020;
+  background-color: #fdeaea;
+  border: 1px solid #f5c2c2;
+}
+
+.message.success {
+  color: #1a7a3c;
+  background-color: #e9f7ef;
+  border: 1px solid #b6e2c6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #f4f5fb;
+    background-color: #1a1a2e;
+  }
+
+  .subtitle {
+    color: #a6a6c2;
+  }
+
+  .card {
+    background-color: #23233d;
+    border-color: #33334f;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .field-label,
+  .checkbox {
+    color: #c7c7e0;
+  }
+
+  input {
+    color: #f4f5fb;
+    background-color: #1a1a2e;
+    border-color: #3a3a5a;
+  }
+
+  .secondary {
+    color: #7aa3f0;
+    background-color: #23233d;
+    border-color: #3a3a5a;
+  }
+
+  .message.error {
+    color: #ff9a9a;
+    background-color: #3a2222;
+    border-color: #5c3333;
+  }
+
+  .message.success {
+    color: #8ee0a8;
+    background-color: #1e3a2a;
+    border-color: #2f5c42;
+  }
+}
