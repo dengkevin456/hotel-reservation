@@ -16,7 +16,7 @@
 
 /* Hide the scrollbar (Chromium/WebKit-based Tauri webview) */
 html {
-  overflow: hidden;
+  overflow: auto;
 }
 
 ::-webkit-scrollbar {
@@ -86,6 +86,79 @@ html {
 
 .field-row input {
   flex: 1;
+}
+
+.subtitle-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #396cd8;
+  background-color: #eef2fd;
+  border: 1px solid #dbe4fb;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.05s;
+}
+
+.subtitle-link::after {
+  content: "→";
+  transition: transform 0.2s;
+}
+
+.subtitle-link:hover {
+  background-color: #e2e9fc;
+  border-color: #b9caf6;
+}
+
+.subtitle-link:hover::after {
+  transform: translateX(3px);
+}
+
+.subtitle-link:active {
+  transform: translateY(1px);
+}
+
+.instructions-list {
+  text-align: left;
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: #3a3a52;
+}
+
+.instructions-list ul {
+  margin: 0.4rem 0 0;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  text-decoration: none;
+  padding: 0.6em 1.15em;
+  border-radius: 999px;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.05s;
+}
+
+.link-button::before {
+  content: "←";
+  transition: transform 0.2s;
+}
+
+.link-button:hover::before {
+  transform: translateX(-3px);
+}
+
+.link-button:active {
+  transform: translateY(1px);
 }
 
 .checkbox,
@@ -196,6 +269,12 @@ button:disabled {
   border: 1px solid #b6e2c6;
 }
 
+.message.warning {
+  color: #664d03;
+  border: 1px solid #ffc107;
+  background-color: #fff9e6;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f4f5fb;
@@ -206,6 +285,17 @@ button:disabled {
     color: #a6a6c2;
   }
 
+  .subtitle-link {
+    color: #9db8f5;
+    background-color: #2a2a48;
+    border-color: #3a3a5a;
+  }
+
+  .subtitle-link:hover {
+    background-color: #33335a;
+    border-color: #4a4a70;
+  }
+
   .card {
     background-color: #23233d;
     border-color: #33334f;
@@ -213,7 +303,8 @@ button:disabled {
   }
 
   .field-label,
-  .checkbox {
+  .checkbox,
+  .instructions-list {
     color: #c7c7e0;
   }
 

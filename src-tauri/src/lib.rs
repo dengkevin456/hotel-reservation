@@ -18,17 +18,22 @@ async fn run_automation(
     open_in_excel: Option<bool>,
     username: Option<String>,
     password: Option<String>,
+    csv_file_path: Option<String>,
+    start_date: Option<String>,
 ) -> Result<String, String> {
     let url = url.unwrap_or_else(|| "https://www.example.com".to_string());
-    // Positional args (empty string = "use default"): url, download folder, excel flag.
+    // Positional args (empty string = "use default"): url, download folder, excel flag,
+    // and the existing CSV to append into (override mode).
     let download_path = download_path.unwrap_or_default();
     let open_flag = if open_in_excel.unwrap_or(false) { "excel" } else { "" };
+    let csv_file_path = csv_file_path.unwrap_or_default();
+    let start_date = start_date.unwrap_or_default();
 
     let sidecar = app
         .shell()
         .sidecar("automation")
         .map_err(|e| format!("Failed to resolve automation sidecar: {e}"))?
-        .args([url, download_path, open_flag.to_string()])
+        .args([url, download_path, open_flag.to_string(), csv_file_path, start_date])
         // Pass credentials via env vars, not CLI args, so they don't leak into
         // process listings or terminal logs.
         .env("AUTOMATION_USERNAME", username.unwrap_or_default())
@@ -38,11 +43,21 @@ async fn run_automation(
         .spawn()
         .map_err(|e| format!("Failed to launch automation sidecar: {e}"))?;
 
-    // Stream the sidecar's output to the terminal live, and capture the exit code.
+    // Stream the sidecar's output to the terminal live, capture the exit code, and
+    // watch for a `USER_ERROR:` marker line to surface a friendly message in the UI.
     let mut exit_code = None;
+    let mut user_error: Option<String> = None;
     while let Some(event) = rx.recv().await {
         match event {
-            CommandEvent::Stdout(bytes) => print!("{}", String::from_utf8_lossy(&bytes)),
+            CommandEvent::Stdout(bytes) => {
+                let text = String::from_utf8_lossy(&bytes);
+                print!("{}", text);
+                for line in text.lines() {
+                    if let Some(msg) = line.strip_prefix("USER_ERROR:") {
+                        user_error = Some(msg.trim().to_string());
+                    }
+                }
+            }
             CommandEvent::Stderr(bytes) => eprint!("{}", String::from_utf8_lossy(&bytes)),
             CommandEvent::Terminated(payload) => exit_code = payload.code,
             _ => {}
@@ -51,9 +66,10 @@ async fn run_automation(
 
     match exit_code {
         Some(0) => Ok("Automation finished. See the terminal for logs.".to_string()),
-        Some(code) => Err(format!(
+        // Prefer the sidecar's friendly message (e.g. "Invalid Credentials") when present.
+        Some(code) => Err(user_error.unwrap_or_else(|| format!(
             "Automation failed (exit code {code}). See the terminal for details."
-        )),
+        ))),
         None => Err("Automation terminated without an exit code.".to_string()),
     }
 }

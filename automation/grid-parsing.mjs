@@ -6,31 +6,38 @@ const toTimestamp = (dateStr) => {
     return new Date(y, m - 1, d).getTime();
 };
 
-/**
- * Converts a flat CSV string into the initial pivot grid layout.
- */
-export function convertToGrid(csvString) {
-    const { data } = Papa.parse(csvString, { header: true, skipEmptyLines: true });
-    return rebuildGrid(data);
+function daysFromToday(startStr) {
+  const [m, d, y] = startStr.split("/").map(Number);
+  const start = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((today - start) / 86400000);
 }
 
 /**
- * Appends a new set of flat CSV data into an existing grid CSV string.
- * It dynamically grows the columns and rows without overwriting existing cells.
+ * Creates a new grid OR appends to an existing grid if one is provided.
+ * @param {string|null|undefined} existingGridCsv - The current grid CSV string (or empty value).
+ * @param {string} newFlatCsv - The new raw/flat CSV data coming in.
+ * @returns {string} The fully updated grid in CSV format.
  */
-export function appendGridData(existingGridCsv, newFlatCsv) {
-    // 1. Parse the existing matrix grid back into standard rows
+export function saveOrAppendGridData(existingGridCsv, newFlatCsv) {
+    // 1. IF THE GRID DOESN'T EXIST: Just generate a fresh grid from the incoming flat data.
+    if (!existingGridCsv || existingGridCsv.trim() === "") {
+        const { data: newData } = Papa.parse(newFlatCsv, { header: true, skipEmptyLines: true });
+        return rebuildGrid(newData);
+    }
+
+    // 2. IF THE GRID EXISTS: Parse it back to matrix rows so we can append to it.
     const { data: gridRows } = Papa.parse(existingGridCsv, { skipEmptyLines: true });
     
-    // Extract columns (headers) and rows from the existing grid
     const headerRow = gridRows[0] || [];
     const existingViewDays = headerRow.slice(1); // Skip the first empty corner cell
 
-    // 2. Map existing grid back into our lookup map structure
     const lookup = new Map();
     const viewDays = new Set(existingViewDays);
     const idsDates = new Set();
 
+    // Map existing grid back into our memory lookup structure
     for (let i = 1; i < gridRows.length; i++) {
         const row = gridRows[i];
         const idsDate = row[0];
@@ -46,7 +53,7 @@ export function appendGridData(existingGridCsv, newFlatCsv) {
         lookup.set(idsDate, dateMap);
     }
 
-    // 3. Parse and merge the incoming new data
+    // 3. Parse and merge the incoming new flat data
     const { data: newData } = Papa.parse(newFlatCsv, { header: true, skipEmptyLines: true });
 
     for (const row of newData) {
@@ -61,12 +68,11 @@ export function appendGridData(existingGridCsv, newFlatCsv) {
             if (!lookup.has(idsDate)) {
                 lookup.set(idsDate, new Map());
             }
-            // This updates existing data or inserts brand new intersections
             lookup.get(idsDate).set(viewDay, occupied);
         }
     }
 
-    // 4. Rebuild the merged grid dynamically
+    // 4. Flatten the merged lookup maps back into standard objects for the rebuilding utility
     const flattenedMergedData = [];
     for (const idsDate of idsDates) {
         const dateMap = lookup.get(idsDate);
@@ -85,7 +91,7 @@ export function appendGridData(existingGridCsv, newFlatCsv) {
 }
 
 /**
- * Internal helper to sort data and structure the final CSV output
+ * Utility helper to sort data chronologically and build the final CSV grid format.
  */
 function rebuildGrid(flatDataArray) {
     const viewDays = new Set();
@@ -106,8 +112,17 @@ function rebuildGrid(flatDataArray) {
         lookup.get(idsDate).set(viewDay, occupied);
     }
 
-    const sortedViewDays = [...viewDays].sort((a, b) => toTimestamp(a) - toTimestamp(b));
-    const sortedIdsDates = [...idsDates].sort((a, b) => toTimestamp(a) - toTimestamp(b));
+    // Drop any View Day column or IDS_DATE row that is more than 90 days in the PAST.
+    // Future dates are always kept (daysFromToday is negative for future dates), so
+    // this only prunes stale old dates, never upcoming ones.
+    const withinRange = (dateStr) => daysFromToday(dateStr) <= 90;
+
+    const sortedViewDays = [...viewDays]
+        //.filter(withinRange)
+        .sort((a, b) => toTimestamp(a) - toTimestamp(b));
+    const sortedIdsDates = [...idsDates]
+        // .filter(withinRange)
+        .sort((a, b) => toTimestamp(a) - toTimestamp(b));
 
     const headerRow = ['', ...sortedViewDays];
     const gridRows = sortedIdsDates.map(idsDate => {
@@ -120,25 +135,3 @@ function rebuildGrid(flatDataArray) {
 
     return Papa.unparse([headerRow, ...gridRows]);
 }
-
-
-// --- EXAMPLE USAGE ---
-
-const initialCsv = `View Day,IDS_DATE,Occupied
-7/14/2026,7/14/2026,60
-7/14/2026,7/15/2026,79`;
-
-// Step 1: Create the initial Grid
-const initialGrid = convertToGrid(initialCsv);
-console.log("--- Initial Grid ---");
-console.log(initialGrid);
-
-// Step 2: New data comes in later (with a brand new column date & new row date)
-const freshIncomingData = `View Day,IDS_DATE,Occupied
-7/15/2026,7/15/2026,85
-7/15/2026,7/16/2026,42`;
-
-// Step 3: Append the new data seamlessly
-const updatedGrid = appendGridData(initialGrid, freshIncomingData);
-console.log("\n--- Updated/Appended Grid ---");
-console.log(updatedGrid);
