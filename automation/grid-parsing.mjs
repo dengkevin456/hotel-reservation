@@ -58,7 +58,7 @@ export function saveOrAppendGridData(existingGridCsv, newFlatCsv) {
 
     for (const row of newData) {
         const viewDay = row['View Day'];
-        const idsDate = row['IDS_DATE'];
+        const idsDate = row['Date'];
         const occupied = row['Occupied'];
 
         if (viewDay && idsDate) {
@@ -80,7 +80,7 @@ export function saveOrAppendGridData(existingGridCsv, newFlatCsv) {
             if (dateMap.has(viewDay)) {
                 flattenedMergedData.push({
                     'View Day': viewDay,
-                    'IDS_DATE': idsDate,
+                    'Date': idsDate,
                     'Occupied': dateMap.get(viewDay)
                 });
             }
@@ -100,7 +100,7 @@ function rebuildGrid(flatDataArray) {
 
     for (const row of flatDataArray) {
         const viewDay = row['View Day'];
-        const idsDate = row['IDS_DATE'];
+        const idsDate = row['Date'];
         const occupied = row['Occupied'];
 
         viewDays.add(viewDay);
@@ -111,11 +111,6 @@ function rebuildGrid(flatDataArray) {
         }
         lookup.get(idsDate).set(viewDay, occupied);
     }
-
-    // Drop any View Day column or IDS_DATE row that is more than 90 days in the PAST.
-    // Future dates are always kept (daysFromToday is negative for future dates), so
-    // this only prunes stale old dates, never upcoming ones.
-    const withinRange = (dateStr) => daysFromToday(dateStr) <= 90;
 
     const sortedViewDays = [...viewDays]
         //.filter(withinRange)

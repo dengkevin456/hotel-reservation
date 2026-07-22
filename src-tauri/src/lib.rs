@@ -25,7 +25,11 @@ async fn run_automation(
     // Positional args (empty string = "use default"): url, download folder, excel flag,
     // and the existing CSV to append into (override mode).
     let download_path = download_path.unwrap_or_default();
-    let open_flag = if open_in_excel.unwrap_or(false) { "excel" } else { "" };
+    let open_flag = if open_in_excel.unwrap_or(false) {
+        "excel"
+    } else {
+        ""
+    };
     let csv_file_path = csv_file_path.unwrap_or_default();
     let start_date = start_date.unwrap_or_default();
 
@@ -33,7 +37,13 @@ async fn run_automation(
         .shell()
         .sidecar("automation")
         .map_err(|e| format!("Failed to resolve automation sidecar: {e}"))?
-        .args([url, download_path, open_flag.to_string(), csv_file_path, start_date])
+        .args([
+            url,
+            download_path,
+            open_flag.to_string(),
+            csv_file_path,
+            start_date,
+        ])
         // Pass credentials via env vars, not CLI args, so they don't leak into
         // process listings or terminal logs.
         .env("AUTOMATION_USERNAME", username.unwrap_or_default())
@@ -67,9 +77,9 @@ async fn run_automation(
     match exit_code {
         Some(0) => Ok("Automation finished. See the terminal for logs.".to_string()),
         // Prefer the sidecar's friendly message (e.g. "Invalid Credentials") when present.
-        Some(code) => Err(user_error.unwrap_or_else(|| format!(
-            "Automation failed (exit code {code}). See the terminal for details."
-        ))),
+        Some(code) => Err(user_error.unwrap_or_else(|| {
+            format!("Automation failed (exit code {code}). See the terminal for details.")
+        })),
         None => Err("Automation terminated without an exit code.".to_string()),
     }
 }
@@ -77,6 +87,7 @@ async fn run_automation(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())

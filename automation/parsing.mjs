@@ -13,7 +13,7 @@ function getDayString(numDays) {
 }
 
 // Reads a freshly downloaded report CSV and returns a flat CSV string with the
-// columns the grid builder expects: "View Day" (the snapshot's date), IDS_DATE, Occupied.
+// columns the grid builder expects: "View Day" (the snapshot's date), Date, Occupied.
 // viewDay defaults to today (M/D/YYYY) when not provided.
 function toFlatCsv(downloadedCsvPath, viewDay) {
     const day = viewDay || getDayString(0);
@@ -25,10 +25,12 @@ function toFlatCsv(downloadedCsvPath, viewDay) {
         skipEmptyLines: true
     })
 
+    const firstColumnName = parsed.meta.fields[0];
+
     const modifiedData = parsed.data.map(row => {
         return {
             "View Day": day,
-            IDS_DATE: row.IDS_DATE,
+            "Date": row[firstColumnName],
             Occupied: row.Occupied
         };
     })
