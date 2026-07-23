@@ -22,9 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.key
 
 # Built sidecar binaries (reproduce with `npm run build:sidecar`)
 /src-tauri/binaries/
+
+# build file
+/build.bat
+/latest.json
 
 # Playwright
 /test-results/

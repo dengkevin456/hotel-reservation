@@ -6,6 +6,13 @@ const toTimestamp = (dateStr) => {
     return new Date(y, m - 1, d).getTime();
 };
 
+// Helper: Get the weekday name (e.g. "Tuesday") for a "M/D/YYYY" date string.
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const toWeekday = (dateStr) => {
+    const [m, d, y] = dateStr.split('/').map(Number);
+    return WEEKDAYS[new Date(y, m - 1, d).getDay()];
+};
+
 function daysFromToday(startStr) {
   const [m, d, y] = startStr.split("/").map(Number);
   const start = new Date(y, m - 1, d);
@@ -31,7 +38,7 @@ export function saveOrAppendGridData(existingGridCsv, newFlatCsv) {
     const { data: gridRows } = Papa.parse(existingGridCsv, { skipEmptyLines: true });
     
     const headerRow = gridRows[0] || [];
-    const existingViewDays = headerRow.slice(1); // Skip the first empty corner cell
+    const existingViewDays = headerRow.slice(2); // Skip the two empty corner cells (date + weekday columns)
 
     const lookup = new Map();
     const viewDays = new Set(existingViewDays);
@@ -45,7 +52,8 @@ export function saveOrAppendGridData(existingGridCsv, newFlatCsv) {
 
         const dateMap = new Map();
         existingViewDays.forEach((viewDay, index) => {
-            const cellValue = row[index + 1];
+            // +2 because column 0 is the date and column 1 is the weekday label.
+            const cellValue = row[index + 2];
             if (cellValue !== undefined && cellValue !== '') {
                 dateMap.set(viewDay, cellValue);
             }
@@ -119,13 +127,14 @@ function rebuildGrid(flatDataArray) {
         // .filter(withinRange)
         .sort((a, b) => toTimestamp(a) - toTimestamp(b));
 
-    const headerRow = ['', ...sortedViewDays];
+    // Two empty corner cells: one above the date column, one above the weekday column.
+    const headerRow = ['', '', ...sortedViewDays];
     const gridRows = sortedIdsDates.map(idsDate => {
         const rowData = sortedViewDays.map(viewDay => {
             const dateMap = lookup.get(idsDate);
             return dateMap?.has(viewDay) ? dateMap.get(viewDay) : '';
         });
-        return [idsDate, ...rowData];
+        return [idsDate, toWeekday(idsDate), ...rowData];
     });
 
     return Papa.unparse([headerRow, ...gridRows]);

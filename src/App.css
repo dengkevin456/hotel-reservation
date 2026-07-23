@@ -249,6 +249,15 @@ button:disabled {
   border-color: #396cd8;
 }
 
+.danger {
+  color: #ffffff;
+  background-color: #d83939;
+}
+
+.danger:hover:not(:disabled) {
+  background-color: #c02f2f;
+}
+
 .message {
   padding: 0.75rem 1rem;
   border-radius: 10px;
