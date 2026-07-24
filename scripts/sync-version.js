@@ -46,7 +46,7 @@ console.log(`  src-tauri/Cargo.toml -> ${version}`);
 // 4. Re-derive the download URL inside latest.json so it points at this version's release.
 for (const platform of Object.values(latest.platforms ?? {})) {
   platform.url =
-    `https://github.com/dengkevin456/hotel-reservation/releases/download/v${version}/myapp_${version}_x64-setup.exe`;
+    `https://github.com/dengkevin456/hotel-reservation/releases/download/v${version}/hotel-reservation_${version}_x64-setup.exe`;
 }
 fs.writeFileSync(latestPath, JSON.stringify(latest, null, 2) + '\n');
 console.log(`  latest.json url -> v${version}`);

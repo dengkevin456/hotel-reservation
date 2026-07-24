@@ -301,7 +301,7 @@ function App() {
           {isLoading ? "Running…" : "Run automation"}
         </button>
 
-        <button type="button" className="danger" onClick={() => navigate("/report")}>
+        <button type="button" className="danger" onClick={() => navigate("/report")} disabled={isUpdating || isLoading}>
           Report a bug
         </button>
 

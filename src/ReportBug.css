@@ -1,0 +1,58 @@
+.bug-textarea {
+  border-radius: 10px;
+  border: 1px solid #d7d9e6;
+  padding: 0.65em 0.9em;
+  font-size: 1em;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #1a1a2e;
+  background-color: #fbfbfe;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+  min-height: 8rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.bug-textarea:focus {
+  border-color: #396cd8;
+  box-shadow: 0 0 0 3px rgba(57, 108, 216, 0.15);
+}
+
+.bug-textarea::placeholder {
+  color: #9a9ab0;
+}
+
+.submit-bug {
+  color: #ffffff;
+  background-color: #396cd8;
+}
+
+.submit-bug:hover:not(:disabled) {
+  background-color: #2f5cc0;
+}
+
+.coming-soon {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a9ab0;
+}
+
+[data-theme="dark"] .coming-soon {
+  color: #6a6a85;
+}
+
+[data-theme="dark"] .bug-textarea {
+  color: #f4f5fb;
+  background-color: #1a1a2e;
+  border-color: #3a3a5a;
+}
+
+[data-theme="dark"] .bug-textarea::placeholder {
+  color: #6a6a85;
+}
