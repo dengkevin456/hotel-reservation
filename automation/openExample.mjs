@@ -94,7 +94,7 @@ async function main() {
     // getByText(...) returns a Locator (always truthy), so we must actually query
     const currentUrl = page.url();
     if (currentUrl.includes("j_security_check")) {
-        throw new Error("Invalid Credentials");
+        throw new Error("Wrong username or password. Try again");
     }
 
     await page.locator("a#bannerFavButton_8").click();

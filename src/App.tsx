@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { load, Store } from "@tauri-apps/plugin-store";
 import "./App.css";
 
 // Formats a Date as a local "YYYY-MM-DD" string for <input type="date"> (min/max/value).
@@ -11,6 +14,8 @@ function toDateInputValue(date: Date) {
 }
 
 function App() {
+  // Initialize navigator
+  const navigate = useNavigate();
   // Allowed start-date window: from one month ago up to today (no future dates).
   const todayStr = toDateInputValue(new Date());
   const oneMonthAgo = new Date();
@@ -20,20 +25,93 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [downloadPath, setDownloadPath] = useState("");
   const [openInExcel, setOpenInExcel] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   // "new" = create a new report.csv in a chosen folder; "override" = overwrite a chosen file.
-  const [mode, setMode] = useState<"new" | "override">("new");
+  const [mode, setMode] = useState<"new" | "override">("override");
   const [csvFilePath, setCsvFilePath] = useState("");
   const [startDate, setStartDate] = useState(todayStr);
+  // Live clock shown in the footer, refreshed every second.
+  const [now, setNow] = useState(() => new Date());
+
+  // Storing the file path
+  const storeRef = useRef<Store>(null);
+
+  // Initialize the download path (if saved)
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initStore() {
+      try {
+        // Load settings file
+        const store = await load("settings.json", {autoSave: true});
+        if (!isMounted) return;
+        storeRef.current = store;
+        
+        const downloadValueCache = await store.get<string>("download-cache");
+        const csvValueCache = await store.get<string>("csv-cache");
+        if (isMounted) {
+            if (downloadValueCache) setDownloadPath(downloadValueCache);
+            if (csvValueCache) setCsvFilePath(csvValueCache);
+        }
+      }
+      catch (error: any) {
+        setErrorMessage(typeof error === "string" ? error : error.message || "An error occured");
+      }
+    }
+
+    initStore();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   async function chooseFolder() {
     const selected = await open({ directory: true, title: "Choose download folder" });
     // `open` returns null if the dialog is cancelled.
     if (typeof selected === "string") {
       setDownloadPath(selected);
+      if (storeRef.current) await storeRef.current.set("download-cache", selected);
+    }
+  }
+
+  async function updateApp() {
+    if (import.meta.env.DEV) {
+      setErrorMessage("Running in development mode!");
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      const update = await check();
+      if (update) {
+          setSuccessMessage(`Update available: ${update.version}. Downloading…`);
+          await update.downloadAndInstall();
+          // The update is only applied once the running app exits and the
+          // installer swaps the files, so relaunch to boot into the new version.
+          setSuccessMessage(`Updated to ${update.version}. Restarting…`);
+          await relaunch();
+      } else {
+          setSuccessMessage("You're already on the latest version.");
+      }
+    }
+    catch (error: any) {
+      setErrorMessage(
+        typeof error === "string"
+          ? error
+          : error.message || "An unknown automation error occurred"
+      );
+    }
+    finally {
+      setIsUpdating(false);
     }
   }
 
@@ -44,6 +122,7 @@ function App() {
     });
     if (typeof selected === "string") {
       setCsvFilePath(selected);
+      if (storeRef.current) await storeRef.current.set("csv-cache", selected);
     }
   }
 
@@ -56,9 +135,16 @@ function App() {
       return;
     }
 
-    if (mode === "override" && !csvFilePath) {
-      setErrorMessage("Please choose a CSV file to override.");
-      return;
+    if (mode === "override") {
+      if (!csvFilePath) {
+        setErrorMessage("Please choose a CSV file to override.");
+        return;
+      }
+      const isExisting = await invoke('check_path_exists', {path: csvFilePath});
+      if (!isExisting) {
+        setErrorMessage("The specified path doesn't exist!");
+        return;
+      }
     }
 
     // Guard the date in case it was typed outside the allowed one-month window.
@@ -186,6 +272,7 @@ function App() {
           <div className="field-row">
             <input
               value={csvFilePath}
+              id="persist-input"
               readOnly
               placeholder="No file selected"
               disabled={mode !== "override"}
@@ -214,9 +301,27 @@ function App() {
           {isLoading ? "Running…" : "Run automation"}
         </button>
 
+        <button type="button" className="danger" onClick={() => navigate("/report")} disabled={isUpdating || isLoading}>
+          Report a bug
+        </button>
+
+        <button
+          type="button"
+          className="secondary"
+          onClick={updateApp}
+          disabled={isLoading || isUpdating || import.meta.env.DEV}
+        >
+          {isUpdating ? "Updating…" : "Check for Updates"}
+        </button>
+
         {errorMessage && <div className="message error">{errorMessage}</div>}
         {successMessage && <div className="message success">{successMessage}</div>}
       </section>
+
+      <footer className="footer">
+        <p>© {now.getFullYear()} Hotel Reservation. All rights reserved.</p>
+        <p>{now.toLocaleString()}</p>
+      </footer>
     </main>
   );
 }
